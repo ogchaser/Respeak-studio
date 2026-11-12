@@ -67,6 +67,24 @@
                 <span class="badge">TEXT</span>
             </div>
 
+            <h3>Audio Transcription</h3>
+            <p>Select an audio file to convert speech into text.</p>
+
+            <input
+                type="file"
+                id="audioUpload"
+                accept="audio/*"
+            >
+
+            <button class="primary-button" id="transcribeButton">
+                Transcribe Audio
+            </button>
+
+            <div id="transcriptionStatus" class="save-status"
+                 aria-live="polite"></div>
+
+            <hr>
+
             <label for="dialogue">Original or transcribed dialogue</label>
             <textarea id="dialogue"
                 placeholder="Your video transcript will appear here. You can also type dialogue manually..."
@@ -78,8 +96,8 @@
             ></textarea>
 
             <div class="editor-note">
-                Transcription and AI speech generation require
-                connection to AI services.
+                AI speech generation, lip-sync and video enhancement
+                will be connected in later stages.
             </div>
 
             <button class="primary-button" id="saveDialogue">
