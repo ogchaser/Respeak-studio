@@ -68,9 +68,9 @@ dialogue.value = savedData.original || "";
 replacement.value = savedData.replacement || "";
 saveStatus.textContent = "";
 
-});
+};
 
-// Store dialogue locally in the browser
+// Restore saved dialogue
 function getSavedDialogue(videoName) {
 try {
 return JSON.parse(
@@ -110,16 +110,12 @@ try {
 
 // Transcribe an uploaded audio file using Cloudflare Whisper
 transcribeButton.addEventListener(“click”, async function() {
-const audioFile = audioUpload.files[0];
 
+// Get the selected audio file
+const audioFile = audioUpload.files[0];
 if (!audioFile) {
     transcriptionStatus.textContent =
         "Please select an audio file first.";
-    return;
-}
-if (!audioFile.type.startsWith("audio/")) {
-    transcriptionStatus.textContent =
-        "Please select a valid audio file.";
     return;
 }
 if (audioFile.size > MAX_AUDIO_SIZE) {
@@ -149,6 +145,7 @@ try {
             "The service responded, but no transcript was returned."
         );
     }
+    // Display the recognized speech
     dialogue.value = result.transcript;
     transcriptionStatus.textContent =
         "Transcription completed successfully. Review your dialogue below.";
@@ -163,7 +160,7 @@ try {
 
 });
 
-// Warn before leaving with an unsaved video session
+// Release video memory when leaving the page
 window.addEventListener(“beforeunload”, function() {
 if (currentVideoURL) {
 URL.revokeObjectURL(currentVideoURL);
