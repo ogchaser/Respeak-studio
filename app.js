@@ -40,12 +40,23 @@ const extractedAudio = document.getElementById("extractedAudio");
 const downloadExtractedAudio = document.getElementById("downloadExtractedAudio");
 const transcribeExtractedAudio = document.getElementById("transcribeExtractedAudio");
 
+// VIDEO REPLACEMENT ELEMENTS
+const replaceVideoAudioButton = document.getElementById("replaceVideoAudio");
+const replaceAudioStatus = document.getElementById("replaceAudioStatus");
+const editedVideoSection = document.getElementById("editedVideoSection");
+const editedVideoPreview = document.getElementById("editedVideoPreview");
+const downloadEditedVideo = document.getElementById("downloadEditedVideo");
+
 // APPLICATION STATE
 let currentVideoURL = null;
 let generatedAudioURL = null;
 let extractedAudioURL = null;
+let editedVideoURL = null;
+
 let currentVideoName = "";
 let currentVideoFile = null;
+
+let generatedAudioBlob = null;
 
 const ffmpeg = new FFmpeg();
 let ffmpegLoaded = false;
@@ -69,18 +80,29 @@ videoUpload.addEventListener("change", function () {
         URL.revokeObjectURL(currentVideoURL);
     }
 
-    // Clear previously extracted audio
     if (extractedAudioURL) {
         URL.revokeObjectURL(extractedAudioURL);
         extractedAudioURL = null;
+    }
+
+    if (editedVideoURL) {
+        URL.revokeObjectURL(editedVideoURL);
+        editedVideoURL = null;
     }
 
     extractedAudio.pause();
     extractedAudio.removeAttribute("src");
     extractedAudio.load();
 
+    editedVideoPreview.pause();
+    editedVideoPreview.removeAttribute("src");
+    editedVideoPreview.load();
+
     extractedAudioSection.hidden = true;
+    editedVideoSection.hidden = true;
+
     extractAudioStatus.textContent = "";
+    replaceAudioStatus.textContent = "";
 
     currentVideoFile = file;
     currentVideoURL = URL.createObjectURL(file);
@@ -247,6 +269,8 @@ generateSpeechButton.addEventListener("click", async function () {
 
     generatedAudioSection.hidden = true;
 
+    generatedAudioBlob = null;
+
     try {
         const response = await fetch(WORKER_URL, {
             method: "POST",
@@ -285,6 +309,7 @@ generateSpeechButton.addEventListener("click", async function () {
             URL.revokeObjectURL(generatedAudioURL);
         }
 
+        generatedAudioBlob = audioBlob;
         generatedAudioURL = URL.createObjectURL(audioBlob);
 
         generatedAudio.src = generatedAudioURL;
@@ -297,6 +322,8 @@ generateSpeechButton.addEventListener("click", async function () {
 
     } catch (error) {
         console.error("Speech generation error:", error);
+
+        generatedAudioBlob = null;
 
         speechStatus.textContent =
             "Speech generation error: " + error.message;
@@ -385,19 +412,18 @@ extractAudioButton.addEventListener("click", async function () {
 
     extractedAudioSection.hidden = true;
 
-    let inputName = "";
-    const outputName = "extracted-audio.m4a";
+    const id = Date.now();
+
+    const extension =
+        currentVideoFile.name.split(".").pop().toLowerCase();
+
+    const safeExtension =
+        /^[a-z0-9]{1,8}$/.test(extension) ? extension : "mp4";
+
+    const inputName = `input-video-${id}.${safeExtension}`;
+    const outputName = `extracted-audio-${id}.m4a`;
 
     try {
-        const extension =
-            currentVideoFile.name.split(".").pop().toLowerCase();
-
-        const safeExtension =
-            /^[a-z0-9]{1,8}$/.test(extension) ? extension : "mp4";
-
-        inputName = "input-video." + safeExtension;
-
-        // Read the uploaded video into FFmpeg
         const videoData = new Uint8Array(
             await currentVideoFile.arrayBuffer()
         );
@@ -407,7 +433,6 @@ extractAudioButton.addEventListener("click", async function () {
         extractAudioStatus.textContent =
             "Processing video and extracting its audio...";
 
-        // Extract audio and convert it to a compact M4A file
         const exitCode = await ffmpeg.exec([
             "-i", inputName,
             "-vn",
@@ -455,19 +480,16 @@ extractAudioButton.addEventListener("click", async function () {
             (error?.message || String(error));
 
     } finally {
-        // Remove temporary FFmpeg files
         try {
-            if (inputName) {
-                await ffmpeg.deleteFile(inputName);
-            }
+            await ffmpeg.deleteFile(inputName);
         } catch (error) {
-            console.warn("Temporary input cleanup:", error);
+            // Ignore temporary-file cleanup errors.
         }
 
         try {
             await ffmpeg.deleteFile(outputName);
         } catch (error) {
-            // Output may not exist if extraction failed.
+            // Ignore temporary-file cleanup errors.
         }
 
         extractAudioButton.disabled = false;
@@ -538,6 +560,134 @@ transcribeExtractedAudio.addEventListener("click", async function () {
 });
 
 
+// REPLACE ORIGINAL VIDEO AUDIO
+replaceVideoAudioButton.addEventListener("click", async function () {
+    if (!currentVideoFile) {
+        replaceAudioStatus.textContent =
+            "Please upload a video first.";
+        return;
+    }
+
+    if (!ffmpegLoaded) {
+        replaceAudioStatus.textContent =
+            "Please load the Video Processing Engine first.";
+        return;
+    }
+
+    if (!generatedAudioBlob) {
+        replaceAudioStatus.textContent =
+            "Please generate replacement speech first.";
+        return;
+    }
+
+    replaceVideoAudioButton.disabled = true;
+
+    replaceAudioStatus.textContent =
+        "Replacing the original video audio. Please wait...";
+
+    editedVideoSection.hidden = true;
+
+    const id = Date.now();
+
+    const extension =
+        currentVideoFile.name.split(".").pop().toLowerCase();
+
+    const safeExtension =
+        /^[a-z0-9]{1,8}$/.test(extension) ? extension : "mp4";
+
+    const inputName = `source-video-${id}.${safeExtension}`;
+    const audioName = `replacement-audio-${id}.mp3`;
+    const outputName = `edited-video-${id}.mp4`;
+
+    try {
+        const videoData = new Uint8Array(
+            await currentVideoFile.arrayBuffer()
+        );
+
+        const audioData = new Uint8Array(
+            await generatedAudioBlob.arrayBuffer()
+        );
+
+        await ffmpeg.writeFile(inputName, videoData);
+        await ffmpeg.writeFile(audioName, audioData);
+
+        replaceAudioStatus.textContent =
+            "Combining your video with the replacement speech...";
+
+        const exitCode = await ffmpeg.exec([
+            "-i", inputName,
+            "-i", audioName,
+            "-map", "0:v:0",
+            "-map", "1:a:0",
+            "-c:v", "copy",
+            "-c:a", "aac",
+            "-b:a", "128k",
+            "-af", "apad",
+            "-shortest",
+            "-movflags", "+faststart",
+            "-y",
+            outputName
+        ]);
+
+        if (exitCode !== 0) {
+            throw new Error(
+                "FFmpeg could not replace the original audio."
+            );
+        }
+
+        const outputData = await ffmpeg.readFile(outputName);
+
+        if (!outputData || outputData.length === 0) {
+            throw new Error("The edited video file is empty.");
+        }
+
+        const editedBlob = new Blob(
+            [outputData],
+            { type: "video/mp4" }
+        );
+
+        if (editedVideoURL) {
+            URL.revokeObjectURL(editedVideoURL);
+        }
+
+        editedVideoURL = URL.createObjectURL(editedBlob);
+
+        editedVideoPreview.src = editedVideoURL;
+        editedVideoPreview.load();
+
+        downloadEditedVideo.href = editedVideoURL;
+        downloadEditedVideo.download = "edited-video.mp4";
+
+        editedVideoSection.hidden = false;
+
+        replaceAudioStatus.textContent =
+            "Video audio replaced successfully. Preview or download your edited video.";
+
+    } catch (error) {
+        console.error("Video audio replacement error:", error);
+
+        replaceAudioStatus.textContent =
+            "Video editing failed: " +
+            (error?.message || String(error));
+
+    } finally {
+        for (const fileName of [
+            inputName,
+            audioName,
+            outputName
+        ]) {
+            try {
+                await ffmpeg.deleteFile(fileName);
+            } catch (error) {
+                // Ignore temporary-file cleanup errors.
+            }
+        }
+
+        replaceVideoAudioButton.disabled = false;
+    }
+});
+
+
 // CLEAN UP TEMPORARY FILE URLS
 window.addEventListener("beforeunload", function () {
     if (currentVideoURL) {
@@ -550,5 +700,9 @@ window.addEventListener("beforeunload", function () {
 
     if (extractedAudioURL) {
         URL.revokeObjectURL(extractedAudioURL);
+    }
+
+    if (editedVideoURL) {
+        URL.revokeObjectURL(editedVideoURL);
     }
 });
