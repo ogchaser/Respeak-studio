@@ -1,4 +1,4 @@
-import { FFmpeg } from "@ffmpeg/ffmpeg";
+ import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { toBlobURL } from "@ffmpeg/util";
 
 const WORKER_URL = "https://respeak-transcription.sophiesara213.workers.dev/";
@@ -259,42 +259,40 @@ loadFFmpegButton.addEventListener("click", async function () {
             "Video processing engine is already loaded.";
         return;
     }
-
     loadFFmpegButton.disabled = true;
     ffmpegStatus.textContent =
-        "Loading video processing engine. Please wait...";
-
+        "Downloading FFmpeg. This may take a few minutes...";
     try {
         const baseURL =
-            "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd";
-
-        await ffmpeg.load({
-            coreURL: await toBlobURL(
-                `${baseURL}/ffmpeg-core.js`,
-                "text/javascript"
-            ),
-            wasmURL: await toBlobURL(
-                `${baseURL}/ffmpeg-core.wasm`,
-                "application/wasm"
-            )
+            "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm";
+        ffmpeg.on("log", ({ message }) => {
+            console.log("FFmpeg:", message);
         });
-
+        const coreURL = await toBlobURL(
+            `${baseURL}/ffmpeg-core.js`,
+            "text/javascript"
+        );
+        const wasmURL = await toBlobURL(
+            `${baseURL}/ffmpeg-core.wasm`,
+            "application/wasm"
+        );
+        await ffmpeg.load({
+            coreURL,
+            wasmURL
+        });
         ffmpegLoaded = true;
-
         loadFFmpegButton.textContent = "Video Engine Ready";
         ffmpegStatus.textContent =
             "FFmpeg loaded successfully. Video processing engine is ready.";
-
     } catch (error) {
-        console.error("FFmpeg loading error:", error);
-
+        console.error("Full FFmpeg error:", error);
+        const details =
+            error?.message || error?.stack || String(error);
         ffmpegStatus.textContent =
-            "Could not load FFmpeg: " + error.message;
-
+            "FFmpeg loading failed: " + details;
         loadFFmpegButton.disabled = false;
     }
 });
-
 // CLEAN UP TEMPORARY FILE URLS
 window.addEventListener("beforeunload", function () {
     if (currentVideoURL) {
