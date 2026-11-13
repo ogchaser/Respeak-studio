@@ -9,6 +9,7 @@ const saveDialogue = document.getElementById(“saveDialogue”);
 const saveStatus = document.getElementById(“saveStatus”);
 
 const audioUpload = document.getElementById(“audioUpload”);
+const audioFileName = document.getElementById(“audioFileName”);
 const transcribeButton = document.getElementById(“transcribeButton”);
 const transcriptionStatus = document.getElementById(“transcriptionStatus”);
 
@@ -19,6 +20,7 @@ const MAX_AUDIO_SIZE = 25 * 1024 * 1024;
 
 let currentVideoURL = null;
 let currentVideoName = null;
+let selectedAudioFile = null;
 
 // Format file size
 function formatFileSize(bytes) {
@@ -68,7 +70,7 @@ dialogue.value = savedData.original || "";
 replacement.value = savedData.replacement || "";
 saveStatus.textContent = "";
 
-};
+});
 
 // Restore saved dialogue
 function getSavedDialogue(videoName) {
@@ -84,8 +86,7 @@ return {};
 // Save dialogue
 saveDialogue.addEventListener(“click”, function() {
 if (!currentVideoName) {
-saveStatus.textContent =
-“Please upload a video first.”;
+saveStatus.textContent = “Please upload a video first.”;
 return;
 }
 
@@ -108,14 +109,36 @@ try {
 
 });
 
-// Transcribe an uploaded audio file using Cloudflare Whisper
+// Detect audio file selection
+audioUpload.addEventListener(“change”, function() {
+selectedAudioFile = audioUpload.files[0] || null;
+
+if (!selectedAudioFile) {
+    audioFileName.textContent = "No audio file selected.";
+    transcriptionStatus.textContent = "";
+    return;
+}
+audioFileName.textContent =
+    "Selected: " + selectedAudioFile.name +
+    " (" + formatFileSize(selectedAudioFile.size) + ")";
+transcriptionStatus.textContent =
+    "Audio file successfully selected.";
+if (selectedAudioFile.size > MAX_AUDIO_SIZE) {
+    transcriptionStatus.textContent =
+        "This file exceeds the 25 MB upload limit.";
+}
+
+});
+
+// Transcribe audio using Cloudflare Whisper
 transcribeButton.addEventListener(“click”, async function() {
 
-// Get the selected audio file
-const audioFile = audioUpload.files[0];
+transcriptionStatus.textContent =
+    "Checking selected audio file...";
+const audioFile = selectedAudioFile || audioUpload.files[0];
 if (!audioFile) {
     transcriptionStatus.textContent =
-        "Please select an audio file first.";
+        "No audio file selected. Please choose an audio file first.";
     return;
 }
 if (audioFile.size > MAX_AUDIO_SIZE) {
@@ -142,10 +165,9 @@ try {
     }
     if (!result.transcript) {
         throw new Error(
-            "The service responded, but no transcript was returned."
+            "No transcript was returned by the service."
         );
     }
-    // Display the recognized speech
     dialogue.value = result.transcript;
     transcriptionStatus.textContent =
         "Transcription completed successfully. Review your dialogue below.";
