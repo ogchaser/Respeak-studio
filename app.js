@@ -48,7 +48,9 @@ videoPreview.onloadedmetadata = function () {
         " | Duration: " + minutes + ":" + String(seconds).padStart(2, "0") +
         " | Resolution: " + videoPreview.videoWidth + " × " + videoPreview.videoHeight;
 };
-// Restore saved dialogue for this video
+videoPreview.onerror = function () {
+    videoInfo.textContent = "The selected video could not be played. Please try another video format.";
+};
 const savedData = localStorage.getItem("respeak_" + file.name);
 if (savedData) {
     try {
