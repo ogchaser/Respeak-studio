@@ -66,9 +66,10 @@
     <p id="audioFileName" class="video-info" aria-live="polite">
         No audio file selected.
     </p>
-    <button class="primary-button" id="transcribeButton" type="button">
-        Transcribe Audio
-    </button>
+    <button class="primary-button" id="transcribeButton" type="button"
+onclick="document.getElementById('transcriptionStatus').textContent='The button is responding.'">
+    Transcribe Audio
+</button>
     <div id="transcriptionStatus" class="save-status"
          aria-live="polite"></div>
     <hr>
