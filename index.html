@@ -43,8 +43,37 @@
        accept="video/mp4,video/quicktime,video/webm"
        hidden>
 <video id="videoPreview" controls playsinline hidden></video>
+
 <div id="videoInfo" class="video-info">
     No video uploaded yet.
+</div>
+
+<hr>
+
+<h3>Extract Original Audio</h3>
+<p>Extract the audio directly from your uploaded video.</p>
+
+<button id="extractAudioButton" class="primary-button" type="button">
+    Extract Audio from Video
+</button>
+
+<p id="extractAudioStatus" class="save-status" aria-live="polite"></p>
+
+<div id="extractedAudioSection" hidden>
+    <h3>Extracted Audio Preview</h3>
+    <audio id="extractedAudio" controls></audio>
+
+    <a id="downloadExtractedAudio"
+       class="upload-button"
+       download="extracted-audio.mp3">
+        Download Extracted Audio
+    </a>
+
+    <button id="transcribeExtractedAudio"
+            class="primary-button"
+            type="button">
+        Transcribe Extracted Audio
+    </button>
 </div>
 </div>
 <div class="panel editor-panel">
