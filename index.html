@@ -25,73 +25,70 @@
     <div class="version">RESPEAK STUDIO 1.0</div>
 </section>
 <section class="workspace">
-    <div class="panel video-panel">
-        <div class="panel-heading">
-            <div>
-                <h2>Video Preview</h2>
-                <p>Upload an existing video to begin.</p>
-            </div>
-            <span class="badge">VIDEO</span>
+<div class="panel video-panel">
+    <div class="panel-heading">
+        <div>
+            <h2>Video Preview</h2>
+            <p>Upload an existing video to begin.</p>
         </div>
-        <label class="upload-area" for="videoUpload">
-            <div class="upload-icon">↑</div>
-            <h3>Upload your video</h3>
-            <p>Choose an MP4, MOV or WebM file</p>
-            <span class="upload-button">Choose Video</span>
-        </label>
-        <input type="file" id="videoUpload"
-               accept="video/mp4,video/quicktime,video/webm"
-               hidden>
-        <video id="videoPreview" controls playsinline hidden></video>
-        <div id="videoInfo" class="video-info">
-            No video uploaded yet.
-        </div>
+        <span class="badge">VIDEO</span>
     </div>
-    <div class="panel editor-panel">
-        <div class="panel-heading">
-            <div>
-                <h2>Dialogue Editor</h2>
-                <p>Edit the words spoken in your video.</p>
-            </div>
-            <span class="badge">TEXT</span>
-        </div>
-        <h3>Audio Transcription</h3>
-        <p>Select an MP3 or other audio file to convert speech into text.</p>
-        <label for="audioUpload" class="upload-button">
-            ↑ Select Audio File
-        </label>
-        <input
-            type="file"
-            id="audioUpload"
-            accept=".mp3,audio/mpeg,audio/*"
-            hidden
-        >
-        <p id="audioFileName" class="video-info" aria-live="polite">
-            No audio file selected.
-        </p>
-        <button class="primary-button" id="transcribeButton" type="button">
-            Transcribe Audio
-        </button>
-        <div id="transcriptionStatus" class="save-status"
-             aria-live="polite"></div>
-        <hr>
-        <label for="dialogue">Original or transcribed dialogue</label>
-        <textarea id="dialogue"
-            placeholder="Your video transcript will appear here. You can also type dialogue manually..."
-        ></textarea>
-        <label for="replacement">Replacement dialogue</label>
-        <textarea id="replacement"
-            placeholder="Type the new words you want spoken..."
-        ></textarea>
-        <div class="editor-note">
-            AI speech generation, lip-sync and video enhancement
-            will be connected in later stages.
-        </div>
-        <button class="primary-button" id="saveDialogue" type="button">
-            Save Dialogue
-        </button>
-        <div id="saveStatus" class="save-status"></div>
+    <label class="upload-area" for="videoUpload">
+        <div class="upload-icon">↑</div>
+        <h3>Upload your video</h3>
+        <p>Choose an MP4, MOV or WebM file</p>
+        <span class="upload-button">Choose Video</span>
+    </label>
+    <input type="file" id="videoUpload"
+           accept="video/mp4,video/quicktime,video/webm"
+           hidden>
+    <video id="videoPreview" controls playsinline hidden></video>
+    <div id="videoInfo" class="video-info">
+        No video uploaded yet.
     </div>
+</div>
+<div class="panel editor-panel">
+    <div class="panel-heading">
+        <div>
+            <h2>Dialogue Editor</h2>
+            <p>Edit the words spoken in your video.</p>
+        </div>
+        <span class="badge">TEXT</span>
+    </div>
+    <h3>Audio Transcription</h3>
+    <p>Select an MP3 or other audio file to convert speech into text.</p>
+    <label for="audioUpload">Choose an audio file:</label>
+    <input
+        type="file"
+        id="audioUpload"
+        accept=".mp3,audio/mpeg,audio/*"
+    >
+    <p id="audioFileName" class="video-info" aria-live="polite">
+        No audio file selected.
+    </p>
+    <button class="primary-button" id="transcribeButton" type="button">
+        Transcribe Audio
+    </button>
+    <div id="transcriptionStatus" class="save-status"
+         aria-live="polite"></div>
+    <hr>
+    <label for="dialogue">Original or transcribed dialogue</label>
+    <textarea id="dialogue"
+        placeholder="Your video transcript will appear here. You can also type dialogue manually..."
+    ></textarea>
+    <label for="replacement">Replacement dialogue</label>
+    <textarea id="replacement"
+        placeholder="Type the new words you want spoken..."
+    ></textarea>
+    <div class="editor-note">
+        AI speech generation, lip-sync and video enhancement
+        will be connected in later stages.
+    </div>
+    <button class="primary-button" id="saveDialogue" type="button">
+        Save Dialogue
+    </button>
+    <div id="saveStatus" class="save-status"></div>
+</div>
 </section>
 <section class="panel tools-panel">
     <div class="panel-heading">
@@ -100,32 +97,32 @@
             <p>Prepare your video for professional editing.</p>
         </div>
     </div>
-    <div class="tools-grid">
-        <div class="tool-card">
-            <div class="tool-icon">✦</div>
-            <h3>AI Voice Replacement</h3>
-            <p>Replace spoken dialogue with generated speech.</p>
-            <span class="coming-soon">AI SERVICE REQUIRED</span>
-        </div>
-        <div class="tool-card">
-            <div class="tool-icon">◉</div>
-            <h3>AI Lip Sync</h3>
-            <p>Synchronize mouth movements with new dialogue.</p>
-            <span class="coming-soon">AI SERVICE REQUIRED</span>
-        </div>
-        <div class="tool-card">
-            <div class="tool-icon">◇</div>
-            <h3>Video Enhancement</h3>
-            <p>Improve sharpness, lighting and visual quality.</p>
-            <span class="coming-soon">PROCESSING REQUIRED</span>
-        </div>
-        <div class="tool-card">
-            <div class="tool-icon">♫</div>
-            <h3>Audio Enhancement</h3>
-            <p>Improve speech clarity and reduce background noise.</p>
-            <span class="coming-soon">PROCESSING REQUIRED</span>
-        </div>
+<div class="tools-grid">
+    <div class="tool-card">
+        <div class="tool-icon">✦</div>
+        <h3>AI Voice Replacement</h3>
+        <p>Replace spoken dialogue with generated speech.</p>
+        <span class="coming-soon">AI SERVICE REQUIRED</span>
     </div>
+    <div class="tool-card">
+        <div class="tool-icon">◉</div>
+        <h3>AI Lip Sync</h3>
+        <p>Synchronize mouth movements with new dialogue.</p>
+        <span class="coming-soon">AI SERVICE REQUIRED</span>
+    </div>
+    <div class="tool-card">
+        <div class="tool-icon">◇</div>
+        <h3>Video Enhancement</h3>
+        <p>Improve sharpness, lighting and visual quality.</p>
+        <span class="coming-soon">PROCESSING REQUIRED</span>
+    </div>
+    <div class="tool-card">
+        <div class="tool-icon">♫</div>
+        <h3>Audio Enhancement</h3>
+        <p>Improve speech clarity and reduce background noise.</p>
+        <span class="coming-soon">PROCESSING REQUIRED</span>
+    </div>
+</div>
 </section>
 <footer>
     <p>ReSpeak Studio © 2026 · AI Video Editing Workspace</p>
