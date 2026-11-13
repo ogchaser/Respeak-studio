@@ -195,6 +195,33 @@
     </div>
 </div>
 </section>
+    <!-- REPLACE VIDEO AUDIO -->
+<section class="panel">
+    <div class="panel-heading">
+        <div>
+            <h2>Replace Video Audio</h2>
+            <p>Combine your original video with your generated replacement speech.</p>
+        </div>
+        <span class="badge">VIDEO EDITING</span>
+    </div>
+
+    <button id="replaceVideoAudio" class="primary-button" type="button">
+        Replace Original Audio
+    </button>
+
+    <p id="replaceAudioStatus" class="save-status" aria-live="polite"></p>
+
+    <div id="editedVideoSection" hidden>
+        <h3>Edited Video Preview</h3>
+        <video id="editedVideoPreview" controls playsinline></video>
+
+        <a id="downloadEditedVideo"
+           class="upload-button"
+           download="edited-video.mp4">
+            Download Edited Video
+        </a>
+    </div>
+</section>
 <footer>
     <p>ReSpeak Studio © 2026 · AI Video Editing Workspace</p>
 </footer>
