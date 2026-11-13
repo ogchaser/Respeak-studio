@@ -1,230 +1,208 @@
-"use strict";
+const WORKER_URL = “https://respeak-transcription.sophiesara213.workers.dev/”;
 
-const videoUpload = document.getElementById("videoUpload");
-const videoPreview = document.getElementById("videoPreview");
-const videoInfo = document.getElementById("videoInfo");
-const dialogue = document.getElementById("dialogue");
-const replacement = document.getElementById("replacement");
-const saveDialogue = document.getElementById("saveDialogue");
-const saveStatus = document.getElementById("saveStatus");
+const videoUpload = document.getElementById(“videoUpload”);
+const videoPreview = document.getElementById(“videoPreview”);
+const videoInfo = document.getElementById(“videoInfo”);
 
-const audioUpload = document.getElementById("audioUpload");
-const audioFileName = document.getElementById("audioFileName");
-const transcribeButton = document.getElementById("transcribeButton");
-const transcriptionStatus = document.getElementById("transcriptionStatus");
+const audioUpload = document.getElementById(“audioUpload”);
+const audioFileName = document.getElementById(“audioFileName”);
+const transcribeButton = document.getElementById(“transcribeButton”);
+const transcriptionStatus = document.getElementById(“transcriptionStatus”);
 
-const WORKER_URL =
-    "https://respeak-transcription.sophiesara213.workers.dev/";
+const dialogue = document.getElementById(“dialogue”);
+const replacement = document.getElementById(“replacement”);
+const saveDialogue = document.getElementById(“saveDialogue”);
+const saveStatus = document.getElementById(“saveStatus”);
 
-const MAX_AUDIO_SIZE = 25 * 1024 * 1024;
+const voiceSelect = document.getElementById(“voiceSelect”);
+const generateSpeechButton = document.getElementById(“generateSpeechButton”);
+const speechStatus = document.getElementById(“speechStatus”);
+const generatedAudioSection = document.getElementById(“generatedAudioSection”);
+const generatedAudio = document.getElementById(“generatedAudio”);
+const downloadSpeech = document.getElementById(“downloadSpeech”);
 
 let currentVideoURL = null;
-let currentVideoName = null;
-let selectedAudioFile = null;
+let generatedAudioURL = null;
+let currentVideoName = “”;
 
-// Check that required page elements exist
-if (
-    !videoUpload ||
-    !videoPreview ||
-    !videoInfo ||
-    !dialogue ||
-    !replacement ||
-    !saveDialogue ||
-    !saveStatus ||
-    !audioUpload ||
-    !audioFileName ||
-    !transcribeButton ||
-    !transcriptionStatus
-) {
-    console.error("ReSpeak Studio: One or more HTML elements are missing.");
+// VIDEO UPLOAD AND PREVIEW
+videoUpload.addEventListener(“change”, function () {
+const file = this.files[0];
+
+if (!file) return;
+if (currentVideoURL) {
+    URL.revokeObjectURL(currentVideoURL);
 }
-
-// Format file size
-function formatFileSize(bytes) {
-    const units = ["Bytes", "KB", "MB", "GB"];
-    let size = bytes;
-    let index = 0;
-
-    while (size >= 1024 && index < units.length - 1) {
-        size /= 1024;
-        index++;
+currentVideoURL = URL.createObjectURL(file);
+currentVideoName = file.name;
+videoPreview.src = currentVideoURL;
+videoPreview.hidden = false;
+videoInfo.textContent = "Loading video information...";
+videoPreview.onloadedmetadata = function () {
+    const duration = Math.round(videoPreview.duration);
+    const minutes = Math.floor(duration / 60);
+    const seconds = duration % 60;
+    videoInfo.textContent =
+        "File: " + file.name +
+        " | Size: " + (file.size / (1024 * 1024)).toFixed(2) + " MB" +
+        " | Duration: " + minutes + ":" + String(seconds).padStart(2, "0") +
+        " | Resolution: " + videoPreview.videoWidth + " × " + videoPreview.videoHeight;
+};
+// Restore saved dialogue for this video
+const savedData = localStorage.getItem("respeak_" + file.name);
+if (savedData) {
+    try {
+        const data = JSON.parse(savedData);
+        dialogue.value = data.original || "";
+        replacement.value = data.replacement || "";
+    } catch (error) {
+        console.error("Could not restore saved dialogue:", error);
     }
-
-    return `${size.toFixed(2)} ${units[index]}`;
+} else {
+    dialogue.value = "";
+    replacement.value = "";
 }
+saveStatus.textContent = "";
 
-// Upload and preview video
-videoUpload.addEventListener("change", function(event) {
-    const file = event.target.files[0];
-
-    if (!file) return;
-
-    if (!file.type.startsWith("video/")) {
-        alert("Please select a valid video file.");
-        videoUpload.value = "";
-        return;
-    }
-
-    if (currentVideoURL) {
-        URL.revokeObjectURL(currentVideoURL);
-    }
-
-    currentVideoURL = URL.createObjectURL(file);
-    currentVideoName = file.name;
-
-    videoPreview.src = currentVideoURL;
-    videoPreview.hidden = false;
-
-    videoPreview.onloadedmetadata = function() {
-        const duration = videoPreview.duration;
-        const minutes = Math.floor(duration / 60);
-        const seconds = Math.floor(duration % 60);
-
-        videoInfo.textContent =
-            `File: ${file.name} | Size: ${formatFileSize(file.size)} | Duration: ${minutes}:${String(seconds).padStart(2, "0")} | Resolution: ${videoPreview.videoWidth} × ${videoPreview.videoHeight}`;
-    };
-
-    videoPreview.onerror = function() {
-        videoInfo.textContent =
-            "This video format could not be previewed by your browser.";
-    };
-
-    videoInfo.textContent = "Loading video preview...";
-
-    const savedData = getSavedDialogue(file.name);
-
-    dialogue.value = savedData.original || "";
-    replacement.value = savedData.replacement || "";
-    saveStatus.textContent = "";
 });
 
-// Restore saved dialogue
-function getSavedDialogue(videoName) {
-    try {
-        return JSON.parse(
-            localStorage.getItem("respeak_" + videoName)
-        ) || {};
-    } catch (error) {
-        return {};
-    }
-}
+// AUDIO FILE SELECTION
+audioUpload.addEventListener(“change”, function () {
+const file = this.files[0];
 
-// Save dialogue
-saveDialogue.addEventListener("click", function() {
-    if (!currentVideoName) {
-        saveStatus.textContent = "Please upload a video first.";
-        return;
-    }
+audioFileName.textContent = file
+    ? "Selected audio: " + file.name
+    : "No audio file selected.";
+transcriptionStatus.textContent = "";
 
-    const data = {
-        original: dialogue.value,
-        replacement: replacement.value,
-        updatedAt: new Date().toISOString()
-    };
-
-    try {
-        localStorage.setItem(
-            "respeak_" + currentVideoName,
-            JSON.stringify(data)
-        );
-
-        saveStatus.textContent =
-            "Dialogue saved successfully in this browser.";
-    } catch (error) {
-        saveStatus.textContent =
-            "Unable to save. Your browser storage may be full.";
-    }
 });
 
-// Detect audio file selection
-audioUpload.addEventListener("change", function() {
-    selectedAudioFile = audioUpload.files[0] || null;
+// AUDIO TRANSCRIPTION
+transcribeButton.addEventListener(“click”, async function () {
+const file = audioUpload.files[0];
 
-    if (!selectedAudioFile) {
-        audioFileName.textContent = "No audio file selected.";
-        transcriptionStatus.textContent = "";
-        return;
+if (!file) {
+    transcriptionStatus.textContent = "Please select an audio file first.";
+    return;
+}
+if (file.size > 25 * 1024 * 1024) {
+    transcriptionStatus.textContent = "The audio file is too large. Maximum size is 25 MB.";
+    return;
+}
+const formData = new FormData();
+formData.append("audio", file);
+transcribeButton.disabled = true;
+transcriptionStatus.textContent = "Uploading audio. Please wait...";
+try {
+    const response = await fetch(WORKER_URL, {
+        method: "POST",
+        body: formData
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+        throw new Error(result.error || "Transcription failed.");
     }
-
-    audioFileName.textContent =
-        "Selected: " + selectedAudioFile.name +
-        " (" + formatFileSize(selectedAudioFile.size) + ")";
-
+    dialogue.value = result.transcript || "";
     transcriptionStatus.textContent =
-        "Audio file successfully selected.";
-
-    if (selectedAudioFile.size > MAX_AUDIO_SIZE) {
-        transcriptionStatus.textContent =
-            "This file exceeds the 25 MB upload limit.";
-    }
-});
-
-// Transcribe audio using Cloudflare Worker
-transcribeButton.addEventListener("click", async function() {
-    const audioFile = selectedAudioFile || audioUpload.files[0];
-
-    if (!audioFile) {
-        transcriptionStatus.textContent =
-            "No audio file selected. Please choose an audio file first.";
-        return;
-    }
-
-    if (audioFile.size > MAX_AUDIO_SIZE) {
-        transcriptionStatus.textContent =
-            "Audio file is too large. Maximum size is 25 MB.";
-        return;
-    }
-
-    transcribeButton.disabled = true;
-    transcribeButton.textContent = "Transcribing...";
+        "Transcription completed successfully. Review your dialogue below.";
+} catch (error) {
+    console.error("Transcription error:", error);
     transcriptionStatus.textContent =
-        "Uploading audio. Please wait...";
+        "Transcription error: " + error.message;
+} finally {
+    transcribeButton.disabled = false;
+}
 
-    try {
-        const formData = new FormData();
-        formData.append("audio", audioFile, audioFile.name);
-
-        const response = await fetch(WORKER_URL, {
-            method: "POST",
-            body: formData
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(
-                result.error || "The transcription request failed."
-            );
-        }
-
-        if (!result.transcript) {
-            throw new Error(
-                "No transcript was returned by the service."
-            );
-        }
-
-        dialogue.value = result.transcript;
-
-        transcriptionStatus.textContent =
-            "Transcription completed successfully. Review your dialogue below.";
-
-    } catch (error) {
-        console.error("Transcription error:", error);
-
-        transcriptionStatus.textContent =
-            "Transcription failed: " + error.message;
-
-    } finally {
-        transcribeButton.disabled = false;
-        transcribeButton.textContent = "Transcribe Audio";
-    }
 });
 
-// Release video memory when leaving the page
-window.addEventListener("beforeunload", function() {
-    if (currentVideoURL) {
-        URL.revokeObjectURL(currentVideoURL);
-    }
+// SAVE DIALOGUE
+saveDialogue.addEventListener(“click”, function () {
+if (!currentVideoName) {
+saveStatus.textContent = “Upload a video before saving dialogue.”;
+return;
+}
+
+const data = {
+    original: dialogue.value,
+    replacement: replacement.value
+};
+localStorage.setItem(
+    "respeak_" + currentVideoName,
+    JSON.stringify(data)
+);
+saveStatus.textContent = "Dialogue saved successfully.";
+
 });
 
-console.log("ReSpeak Studio editor initialized.");
+// GENERATE REPLACEMENT SPEECH
+generateSpeechButton.addEventListener(“click”, async function () {
+const text = replacement.value.trim();
+const speaker = voiceSelect.value;
+
+if (!text) {
+    speechStatus.textContent = "Please enter your replacement dialogue first.";
+    return;
+}
+if (text.length > 2000) {
+    speechStatus.textContent = "Your replacement dialogue must be 2,000 characters or fewer.";
+    return;
+}
+generateSpeechButton.disabled = true;
+speechStatus.textContent = "Generating replacement speech. Please wait...";
+generatedAudioSection.hidden = true;
+try {
+    const response = await fetch(WORKER_URL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            action: "generateSpeech",
+            text: text,
+            speaker: speaker
+        })
+    });
+    if (!response.ok) {
+        let errorMessage = "Speech generation failed.";
+        try {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorMessage;
+        } catch (error) {
+            // Keep the default error message.
+        }
+        throw new Error(errorMessage);
+    }
+    const audioBlob = await response.blob();
+    if (!audioBlob.size) {
+        throw new Error("The speech service returned an empty audio file.");
+    }
+    if (generatedAudioURL) {
+        URL.revokeObjectURL(generatedAudioURL);
+    }
+    generatedAudioURL = URL.createObjectURL(audioBlob);
+    generatedAudio.src = generatedAudioURL;
+    downloadSpeech.href = generatedAudioURL;
+    generatedAudioSection.hidden = false;
+    speechStatus.textContent =
+        "Speech generated successfully. You can listen to or download it below.";
+} catch (error) {
+    console.error("Speech generation error:", error);
+    speechStatus.textContent =
+        "Speech generation error: " + error.message;
+} finally {
+    generateSpeechButton.disabled = false;
+}
+
+});
+
+// CLEAN UP TEMPORARY FILE URLS
+window.addEventListener(“beforeunload”, function () {
+if (currentVideoURL) {
+URL.revokeObjectURL(currentVideoURL);
+}
+
+if (generatedAudioURL) {
+    URL.revokeObjectURL(generatedAudioURL);
+}
+
+});
