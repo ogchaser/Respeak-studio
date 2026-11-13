@@ -1,3 +1,6 @@
+import { FFmpeg } from "@ffmpeg/ffmpeg";
+import { toBlobURL } from "@ffmpeg/util";
+
 const WORKER_URL = "https://respeak-transcription.sophiesara213.workers.dev/";
 
 const videoUpload = document.getElementById("videoUpload");
@@ -21,9 +24,15 @@ const generatedAudioSection = document.getElementById("generatedAudioSection");
 const generatedAudio = document.getElementById("generatedAudio");
 const downloadSpeech = document.getElementById("downloadSpeech");
 
+const loadFFmpegButton = document.getElementById("loadFFmpeg");
+const ffmpegStatus = document.getElementById("ffmpegStatus");
+
 let currentVideoURL = null;
 let generatedAudioURL = null;
 let currentVideoName = "";
+
+const ffmpeg = new FFmpeg();
+let ffmpegLoaded = false;
 
 // VIDEO UPLOAD AND PREVIEW
 videoUpload.addEventListener("change", function () {
@@ -240,6 +249,49 @@ generateSpeechButton.addEventListener("click", async function () {
 
     } finally {
         generateSpeechButton.disabled = false;
+    }
+});
+
+// FFMPEG VIDEO PROCESSING ENGINE
+loadFFmpegButton.addEventListener("click", async function () {
+    if (ffmpegLoaded) {
+        ffmpegStatus.textContent =
+            "Video processing engine is already loaded.";
+        return;
+    }
+
+    loadFFmpegButton.disabled = true;
+    ffmpegStatus.textContent =
+        "Loading video processing engine. Please wait...";
+
+    try {
+        const baseURL =
+            "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd";
+
+        await ffmpeg.load({
+            coreURL: await toBlobURL(
+                `${baseURL}/ffmpeg-core.js`,
+                "text/javascript"
+            ),
+            wasmURL: await toBlobURL(
+                `${baseURL}/ffmpeg-core.wasm`,
+                "application/wasm"
+            )
+        });
+
+        ffmpegLoaded = true;
+
+        loadFFmpegButton.textContent = "Video Engine Ready";
+        ffmpegStatus.textContent =
+            "FFmpeg loaded successfully. Video processing engine is ready.";
+
+    } catch (error) {
+        console.error("FFmpeg loading error:", error);
+
+        ffmpegStatus.textContent =
+            "Could not load FFmpeg: " + error.message;
+
+        loadFFmpegButton.disabled = false;
     }
 });
 
