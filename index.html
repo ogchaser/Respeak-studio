@@ -33,19 +33,19 @@
         </div>
         <span class="badge">VIDEO</span>
     </div>
-    <label class="upload-area" for="videoUpload">
-        <div class="upload-icon">↑</div>
-        <h3>Upload your video</h3>
-        <p>Choose an MP4, MOV or WebM file</p>
-        <span class="upload-button">Choose Video</span>
-    </label>
-    <input type="file" id="videoUpload"
-           accept="video/mp4,video/quicktime,video/webm"
-           hidden>
-    <video id="videoPreview" controls playsinline hidden></video>
-    <div id="videoInfo" class="video-info">
-        No video uploaded yet.
-    </div>
+<label class="upload-area" for="videoUpload">
+    <div class="upload-icon">↑</div>
+    <h3>Upload your video</h3>
+    <p>Choose an MP4, MOV or WebM file</p>
+    <span class="upload-button">Choose Video</span>
+</label>
+<input type="file" id="videoUpload"
+       accept="video/mp4,video/quicktime,video/webm"
+       hidden>
+<video id="videoPreview" controls playsinline hidden></video>
+<div id="videoInfo" class="video-info">
+    No video uploaded yet.
+</div>
 </div>
 <div class="panel editor-panel">
     <div class="panel-heading">
@@ -55,39 +55,64 @@
         </div>
         <span class="badge">TEXT</span>
     </div>
-    <h3>Audio Transcription</h3>
-    <p>Select an MP3 or other audio file to convert speech into text.</p>
-    <label for="audioUpload">Choose an audio file:</label>
-    <input
-        type="file"
-        id="audioUpload"
-        accept=".mp3,audio/mpeg,audio/*"
-    >
-    <p id="audioFileName" class="video-info" aria-live="polite">
-        No audio file selected.
-    </p>
-    <button class="primary-button" id="transcribeButton" type="button">
+<h3>Audio Transcription</h3>
+<p>Select an MP3 or other audio file to convert speech into text.</p>
+<label for="audioUpload">Choose an audio file:</label>
+<input
+    type="file"
+    id="audioUpload"
+    accept=".mp3,audio/mpeg,audio/*"
+>
+<p id="audioFileName" class="video-info" aria-live="polite">
+    No audio file selected.
+</p>
+<button class="primary-button" id="transcribeButton" type="button">
     Transcribe Audio
 </button>
-    <div id="transcriptionStatus" class="save-status"
-         aria-live="polite"></div>
-    <hr>
-    <label for="dialogue">Original or transcribed dialogue</label>
-    <textarea id="dialogue"
-        placeholder="Your video transcript will appear here. You can also type dialogue manually..."
-    ></textarea>
-    <label for="replacement">Replacement dialogue</label>
-    <textarea id="replacement"
-        placeholder="Type the new words you want spoken..."
-    ></textarea>
-    <div class="editor-note">
-        AI speech generation, lip-sync and video enhancement
-        will be connected in later stages.
-    </div>
-    <button class="primary-button" id="saveDialogue" type="button">
-        Save Dialogue
-    </button>
-    <div id="saveStatus" class="save-status"></div>
+<div id="transcriptionStatus" class="save-status"
+     aria-live="polite"></div>
+<hr>
+<label for="dialogue">Original or transcribed dialogue</label>
+<textarea id="dialogue"
+    placeholder="Your video transcript will appear here. You can also type dialogue manually..."
+></textarea>
+<label for="replacement">Replacement dialogue</label>
+<textarea id="replacement"
+    placeholder="Type the new words you want spoken..."
+></textarea>
+<hr>
+<h3>AI Speech Generation</h3>
+<p>Convert your replacement dialogue into natural-sounding speech.</p>
+<label for="voiceSelect">Choose an AI voice:</label>
+<select id="voiceSelect">
+    <option value="luna">Luna - Female</option>
+    <option value="asteria">Asteria - Female</option>
+    <option value="athena">Athena - Female</option>
+    <option value="orion">Orion - Male</option>
+    <option value="zeus">Zeus - Male</option>
+    <option value="apollo">Apollo - Male</option>
+</select>
+<button class="primary-button" id="generateSpeechButton" type="button">
+    Generate Speech
+</button>
+<div id="speechStatus" class="save-status"
+     aria-live="polite"></div>
+<div id="generatedAudioSection" hidden>
+    <h3>Generated Speech Preview</h3>
+    <audio id="generatedAudio" controls></audio>
+    <a id="downloadSpeech" class="upload-button"
+       download="replacement-audio.mp3">
+        Download Generated Audio
+    </a>
+</div>
+<div class="editor-note">
+    Generated speech is ready for preview and download.
+    Lip-sync and final video replacement will be added in later stages.
+</div>
+<button class="primary-button" id="saveDialogue" type="button">
+    Save Dialogue
+</button>
+<div id="saveStatus" class="save-status"></div>
 </div>
 </section>
 <section class="panel tools-panel">
@@ -102,7 +127,7 @@
         <div class="tool-icon">✦</div>
         <h3>AI Voice Replacement</h3>
         <p>Replace spoken dialogue with generated speech.</p>
-        <span class="coming-soon">AI SERVICE REQUIRED</span>
+        <span class="coming-soon">IN DEVELOPMENT</span>
     </div>
     <div class="tool-card">
         <div class="tool-icon">◉</div>
